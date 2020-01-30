@@ -34,7 +34,7 @@ func TestConvToGitLogs(t *testing.T) {
 		t.Error("Failed the extract the commit hash")
 	}
 	// test to extract the message
-	if gitLogs[1].Message != "Update a message sample" {
+	if gitLogs[5].Message != "Add message sample. and function() sample." {
 		t.Error("Failed the extract the message")
 	}
 	// test to extract the name

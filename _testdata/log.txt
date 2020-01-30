@@ -3,7 +3,7 @@
 *    90ae84a (yasukotelin) (2020-01-21 11:30:43 +0900) Merge the message sample
 |\  
 | *  6a94fa4 (yasukotelin) (2020-01-21 11:21:08 +0900) Update the message sample
-| *  36c1c7f (yasukotelin) (2020-01-20 17:31:56 +0900) Add message sample
+| *  36c1c7f (yasukotelin) (2020-01-20 17:31:56 +0900) Add message sample. and function() sample.
 |/  
 *  4cba26c (yasukotelin) (2020-01-20 13:18:42 +0900) Update the message sample
 *  6dc1108 (yasukotelin) (2020-01-20 13:08:40 +0900) Update the message sample
