@@ -158,6 +158,25 @@ func (t *Tui) newGitTreeView() *tview.List {
 	list.SetSelectedTextColor(t.color.treeSelFgColor)
 	list.SetHighlightFullLine(true)
 	list.SetWrapAround(false)
+	list.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch event.Rune() {
+		case 'j':
+			return tcell.NewEventKey(tcell.KeyDown, ' ', tcell.ModNone)
+		case 'k':
+			return tcell.NewEventKey(tcell.KeyUp, ' ', tcell.ModNone)
+		case 'g':
+			return tcell.NewEventKey(tcell.KeyHome, ' ', tcell.ModNone)
+		case 'G':
+			return tcell.NewEventKey(tcell.KeyEnd, ' ', tcell.ModNone)
+		}
+		switch event.Key() {
+		case tcell.KeyCtrlD:
+			return tcell.NewEventKey(tcell.KeyPgDn, ' ', tcell.ModNone)
+		case tcell.KeyCtrlU:
+			return tcell.NewEventKey(tcell.KeyPgUp, ' ', tcell.ModNone)
+		}
+		return event
+	})
 
 	list.Box.SetBackgroundColor(t.color.bg)
 
