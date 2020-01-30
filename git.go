@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -14,7 +15,7 @@ type GitLog struct {
 	Date       string
 }
 
-func getGitLog() ([]GitLog, error) {
+func GetGitLog() ([]GitLog, error) {
 	cmd := exec.Command("git", "log", "--graph", "--all", "--oneline", "--pretty=format:%d")
 	graph, err := cmd.Output()
 	if err != nil {
@@ -69,4 +70,27 @@ func parseLog(logLine string) (commitHash, name, date, message string) {
 	}
 
 	return commitHash, name, date, message
+}
+
+func RunGitShow(commitHash string) error {
+	gitCmd := exec.Command("git", "show", "--color=always", commitHash)
+	lessCmd := exec.Command("less", "-R")
+	lessCmd.Stdout = os.Stdout
+	lessCmd.Stderr = os.Stderr
+	pipe, err := gitCmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+	defer pipe.Close()
+
+	lessCmd.Stdin = pipe
+
+	if err := gitCmd.Start(); err != nil {
+		return err
+	}
+	if err := lessCmd.Run(); err != nil {
+		return err
+	}
+
+	return nil
 }

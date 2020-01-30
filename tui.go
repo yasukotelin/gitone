@@ -79,7 +79,7 @@ func NewDarkTui() *Tui {
 }
 
 func (t *Tui) Run() error {
-	gitLogs, err := getGitLog()
+	gitLogs, err := GetGitLog()
 	if err != nil {
 		return err
 	}
@@ -108,20 +108,23 @@ func (t *Tui) initView() {
 	t.log1View = t.newLog1View()
 	t.log2View = t.newLog2View()
 
-	// Init show
-	t.updateLogView(t.gitLogs[0])
-
-	// Event
-	t.treeView.SetChangedFunc(func(index int, mainText string, secondaryText string, shortCut rune) {
-		t.updateLogView(t.gitLogs[index])
-	})
-	t.treeView.SetSelectedFunc(func(index int, mainText string, secondaryText string, shortCut rune) {
-	})
-
 	t.flexBox = tview.NewFlex().SetDirection(tview.FlexRow)
 	t.flexBox.AddItem(t.treeView, 0, 1, true)
 	t.flexBox.AddItem(t.log1View, 1, 1, false)
 	t.flexBox.AddItem(t.log2View, 1, 1, false)
+
+	// Init show
+	t.updateLogView(t.gitLogs[0])
+
+	// Init event
+	t.treeView.SetChangedFunc(func(index int, mainText string, secondaryText string, shortCut rune) {
+		t.updateLogView(t.gitLogs[index])
+	})
+	t.treeView.SetSelectedFunc(func(index int, mainText string, secondaryText string, shortCut rune) {
+		t.app.Suspend(func() {
+			RunGitShow(t.gitLogs[index].CommitHash)
+		})
+	})
 }
 
 func (t *Tui) updateLogView(gitLog GitLog) {

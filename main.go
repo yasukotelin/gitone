@@ -29,7 +29,6 @@ func main() {
 }
 
 func mainAction(context *cli.Context) {
-
 	var theme Theme
 	if context.String("theme") == "light" {
 		theme = Light
