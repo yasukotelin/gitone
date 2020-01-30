@@ -20,7 +20,7 @@ func getGitLog() ([]GitLog, error) {
 	if err != nil {
 		return nil, err
 	}
-	cmd = exec.Command("git", "log", "--graph", "--all", "--oneline", "--pretty=format:%h (%an) (%cd) %s --abbrev-commit --date=iso-local")
+	cmd = exec.Command("git", "log", "--graph", "--all", "--oneline", "--pretty=format:%h (%an) (%cd) %s", "--abbrev-commit", "--date=iso-local")
 	log, err := cmd.Output()
 	if err != nil {
 		return nil, err
