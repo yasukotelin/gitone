@@ -18,7 +18,7 @@ func main() {
 		&cli.StringFlag{
 			Name:  "theme",
 			Value: "dark",
-			Usage: "theme is dark or light",
+			Usage: "dark/light/soliddark/solidlight",
 		},
 	}
 
@@ -34,8 +34,12 @@ func mainAction(context *cli.Context) {
 		theme = Light
 	} else if context.String("theme") == "dark" {
 		theme = Dark
+	} else if context.String("theme") == "solidlight" {
+		theme = SolidLight
+	} else if context.String("theme") == "soliddark" {
+		theme = SolidDark
 	} else {
-		fmt.Println("--theme should be dark or light")
+		fmt.Println("Invalid theme")
 		os.Exit(1)
 	}
 

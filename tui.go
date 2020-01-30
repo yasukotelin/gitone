@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/gdamore/tcell"
 	"github.com/rivo/tview"
@@ -12,17 +13,21 @@ type Theme int
 const (
 	Dark Theme = iota
 	Light
+	SolidDark
+	SolidLight
 )
 
 type Tui struct {
-	app      *tview.Application
-	theme    Theme
-	color    *TuiColor
-	gitLogs  []GitLog
-	flexBox  *tview.Flex
-	treeView *tview.List
-	log1View *tview.TextView
-	log2View *tview.TextView
+	app         *tview.Application
+	theme       Theme
+	color       *TuiColor
+	gitLogs     []GitLog
+	flexBox     *tview.Flex
+	infoView    *tview.TextView
+	treeView    *tview.List
+	log1View    *tview.TextView
+	log2View    *tview.TextView
+	messageView *tview.TextView
 }
 
 type TuiColor struct {
@@ -32,15 +37,17 @@ type TuiColor struct {
 	treeSelBgColor tcell.Color
 	log1Bg         tcell.Color
 	log1Fg         tcell.Color
-	log2Bg         tcell.Color
-	log2Fg         tcell.Color
 }
 
 func NewTui(theme Theme) *Tui {
 	if theme == Dark {
 		return NewDarkTui()
-	} else {
+	} else if theme == Light {
 		return NewLightTui()
+	} else if theme == SolidDark {
+		return NewSolidDarkTui()
+	} else {
+		return NewSolidLightTui()
 	}
 }
 
@@ -55,8 +62,6 @@ func NewLightTui() *Tui {
 			treeSelFgColor: tcell.ColorWhite,
 			log1Bg:         tcell.ColorBlue,
 			log1Fg:         tcell.ColorWhite,
-			log2Bg:         tcell.ColorWhite,
-			log2Fg:         tcell.ColorBlack,
 		},
 	}
 }
@@ -72,8 +77,35 @@ func NewDarkTui() *Tui {
 			treeSelFgColor: tcell.ColorWhite,
 			log1Bg:         tcell.ColorBlue,
 			log1Fg:         tcell.ColorWhite,
-			log2Bg:         tcell.ColorBlack,
-			log2Fg:         tcell.ColorWhite,
+		},
+	}
+}
+
+func NewSolidDarkTui() *Tui {
+	return &Tui{
+		app:   tview.NewApplication(),
+		theme: Dark,
+		color: &TuiColor{
+			bg:             tcell.ColorBlack,
+			fg:             tcell.ColorWhite,
+			treeSelBgColor: tcell.ColorWhite,
+			treeSelFgColor: tcell.ColorBlack,
+			log1Bg:         tcell.ColorWhite,
+			log1Fg:         tcell.ColorBlack,
+		},
+	}
+}
+func NewSolidLightTui() *Tui {
+	return &Tui{
+		app:   tview.NewApplication(),
+		theme: Dark,
+		color: &TuiColor{
+			bg:             tcell.ColorWhite,
+			fg:             tcell.ColorBlack,
+			treeSelBgColor: tcell.ColorBlack,
+			treeSelFgColor: tcell.ColorWhite,
+			log1Bg:         tcell.ColorBlack,
+			log1Fg:         tcell.ColorWhite,
 		},
 	}
 }
@@ -104,27 +136,42 @@ func (t *Tui) inputCapture(event *tcell.EventKey) *tcell.EventKey {
 }
 
 func (t *Tui) initView() {
+	t.infoView = t.newInfoView()
 	t.treeView = t.newGitTreeView()
 	t.log1View = t.newLog1View()
 	t.log2View = t.newLog2View()
+	t.messageView = t.newMessageView()
 
 	t.flexBox = tview.NewFlex().SetDirection(tview.FlexRow)
+	t.flexBox.AddItem(t.infoView, 1, 1, false)
 	t.flexBox.AddItem(t.treeView, 0, 1, true)
 	t.flexBox.AddItem(t.log1View, 1, 1, false)
 	t.flexBox.AddItem(t.log2View, 1, 1, false)
+	t.flexBox.AddItem(t.messageView, 1, 1, false)
 
 	// Init show
+	t.updateInfoView()
 	t.updateLogView(t.gitLogs[0])
 
 	// Init event
 	t.treeView.SetChangedFunc(func(index int, mainText string, secondaryText string, shortCut rune) {
+		t.updateInfoView()
 		t.updateLogView(t.gitLogs[index])
 	})
 	t.treeView.SetSelectedFunc(func(index int, mainText string, secondaryText string, shortCut rune) {
 		t.app.Suspend(func() {
-			RunGitShow(t.gitLogs[index].CommitHash)
+			if err := RunGitShow(t.gitLogs[index].CommitHash); err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
 		})
 	})
+}
+
+func (t *Tui) updateInfoView() {
+	total := len(t.gitLogs)
+	current := t.treeView.GetCurrentItem() + 1
+	t.infoView.SetText(fmt.Sprintf("(%v/%v)", current, total))
 }
 
 func (t *Tui) updateLogView(gitLog GitLog) {
@@ -183,6 +230,13 @@ func (t *Tui) newGitTreeView() *tview.List {
 	return list
 }
 
+func (t *Tui) newInfoView() *tview.TextView {
+	tv := tview.NewTextView()
+	tv.SetTextColor(t.color.fg)
+	tv.SetBackgroundColor(t.color.bg)
+	return tv
+}
+
 func (t *Tui) newLog1View() *tview.TextView {
 	tv := tview.NewTextView()
 	tv.SetTextColor(t.color.log1Fg)
@@ -192,7 +246,14 @@ func (t *Tui) newLog1View() *tview.TextView {
 
 func (t *Tui) newLog2View() *tview.TextView {
 	tv := tview.NewTextView()
-	tv.SetTextColor(t.color.log2Fg)
-	tv.SetBackgroundColor(t.color.log2Bg)
+	tv.SetTextColor(t.color.fg)
+	tv.SetBackgroundColor(t.color.bg)
+	return tv
+}
+
+func (t *Tui) newMessageView() *tview.TextView {
+	tv := tview.NewTextView()
+	tv.SetTextColor(tcell.ColorRed)
+	tv.SetBackgroundColor(t.color.bg)
 	return tv
 }
