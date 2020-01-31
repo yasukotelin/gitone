@@ -60,7 +60,7 @@ func parseLog(logLine string) (commitHash, name, date, message string) {
 	// 2nd -> name
 	// 3rd -> date
 	// 4th -> message
-	r := regexp.MustCompile(`([a-z0-9]{7}) \((.*?)\) \((.*?)\) (.*$)`)
+	r := regexp.MustCompile(`([a-z0-9]*) \((.*?)\) \((.*?)\) (.*$)`)
 	group := r.FindStringSubmatch(logLine)
 	if len(group) != 0 {
 		commitHash = group[1]
