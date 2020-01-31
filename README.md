@@ -5,7 +5,9 @@ This app is inspired [tig](https://github.com/jonas/tig) and [GitUp](https://git
 
 Supported macOS, Linux and Windows.
 
-![gitone demo](./images/gitone-demo.gif)
+![gitone demo dark](./images/gitone-dark-demo.gif)
+
+![gitone demo light](./images/gitone-demo.gif)
 
 ## Requirement
 
