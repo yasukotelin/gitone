@@ -235,29 +235,24 @@ func (t *Tui) newGitTreeView() *tview.List {
 }
 
 func (t *Tui) newInfoView() *tview.TextView {
-	tv := tview.NewTextView()
-	tv.SetTextColor(t.color.fg)
-	tv.SetBackgroundColor(t.color.bg)
-	return tv
+	return newView(t.color.fg, t.color.bg)
 }
 
 func (t *Tui) newLog1View() *tview.TextView {
-	tv := tview.NewTextView()
-	tv.SetTextColor(t.color.log1Fg)
-	tv.SetBackgroundColor(t.color.log1Bg)
-	return tv
+	return newView(t.color.log1Fg, t.color.log1Bg)
 }
 
 func (t *Tui) newLog2View() *tview.TextView {
-	tv := tview.NewTextView()
-	tv.SetTextColor(t.color.fg)
-	tv.SetBackgroundColor(t.color.bg)
-	return tv
+	return newView(t.color.fg, t.color.bg)
 }
 
 func (t *Tui) newMessageView() *tview.TextView {
+	return newView(tcell.ColorRed, t.color.bg)
+}
+
+func newView(textColor, bgColor tcell.Color) *tview.TextView {
 	tv := tview.NewTextView()
-	tv.SetTextColor(tcell.ColorRed)
-	tv.SetBackgroundColor(t.color.bg)
+	tv.SetTextColor(textColor)
+	tv.SetBackgroundColor(bgColor)
 	return tv
 }
