@@ -17,7 +17,9 @@ Supported macOS, Linux and Windows.
 ## Installation
 
 ```
-go get -u github.com/yasukotelin/gitone
+git clone https://github.com/yasukotelin/gitone.git
+cd gitone
+go install
 ```
 
 You move to git project.
