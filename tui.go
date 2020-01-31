@@ -8,19 +8,10 @@ import (
 	"github.com/rivo/tview"
 )
 
-type Theme int
-
-const (
-	Dark Theme = iota
-	Light
-	SolidDark
-	SolidLight
-)
-
 type Tui struct {
 	app         *tview.Application
 	theme       Theme
-	color       *TuiColor
+	tuiTheme    *TuiTheme
 	gitLogs     []GitLog
 	flexBox     *tview.Flex
 	infoView    *tview.TextView
@@ -30,83 +21,11 @@ type Tui struct {
 	messageView *tview.TextView
 }
 
-type TuiColor struct {
-	bg             tcell.Color
-	fg             tcell.Color
-	treeSelFgColor tcell.Color
-	treeSelBgColor tcell.Color
-	log1Bg         tcell.Color
-	log1Fg         tcell.Color
-}
-
 func NewTui(theme Theme) *Tui {
-	if theme == Dark {
-		return NewDarkTui()
-	} else if theme == Light {
-		return NewLightTui()
-	} else if theme == SolidDark {
-		return NewSolidDarkTui()
-	} else {
-		return NewSolidLightTui()
-	}
-}
-
-func NewLightTui() *Tui {
 	return &Tui{
-		app:   tview.NewApplication(),
-		theme: Light,
-		color: &TuiColor{
-			bg:             tcell.ColorWhite,
-			fg:             tcell.ColorBlack,
-			treeSelBgColor: tcell.ColorGreen,
-			treeSelFgColor: tcell.ColorWhite,
-			log1Bg:         tcell.ColorBlue,
-			log1Fg:         tcell.ColorWhite,
-		},
-	}
-}
-
-func NewDarkTui() *Tui {
-	return &Tui{
-		app:   tview.NewApplication(),
-		theme: Dark,
-		color: &TuiColor{
-			bg:             tcell.ColorBlack,
-			fg:             tcell.ColorWhite,
-			treeSelBgColor: tcell.ColorGreen,
-			treeSelFgColor: tcell.ColorWhite,
-			log1Bg:         tcell.ColorBlue,
-			log1Fg:         tcell.ColorWhite,
-		},
-	}
-}
-
-func NewSolidDarkTui() *Tui {
-	return &Tui{
-		app:   tview.NewApplication(),
-		theme: Dark,
-		color: &TuiColor{
-			bg:             tcell.ColorBlack,
-			fg:             tcell.ColorWhite,
-			treeSelBgColor: tcell.ColorWhite,
-			treeSelFgColor: tcell.ColorBlack,
-			log1Bg:         tcell.ColorWhite,
-			log1Fg:         tcell.ColorBlack,
-		},
-	}
-}
-func NewSolidLightTui() *Tui {
-	return &Tui{
-		app:   tview.NewApplication(),
-		theme: Dark,
-		color: &TuiColor{
-			bg:             tcell.ColorWhite,
-			fg:             tcell.ColorBlack,
-			treeSelBgColor: tcell.ColorBlack,
-			treeSelFgColor: tcell.ColorWhite,
-			log1Bg:         tcell.ColorBlack,
-			log1Fg:         tcell.ColorWhite,
-		},
+		app:      tview.NewApplication(),
+		theme:    theme,
+		tuiTheme: NewTuiTheme(theme),
 	}
 }
 
@@ -204,9 +123,9 @@ func (t *Tui) newGitTreeView() *tview.List {
 	}
 
 	list.ShowSecondaryText(false)
-	list.SetMainTextColor(t.color.fg)
-	list.SetSelectedBackgroundColor(t.color.treeSelBgColor)
-	list.SetSelectedTextColor(t.color.treeSelFgColor)
+	list.SetMainTextColor(t.tuiTheme.fg)
+	list.SetSelectedBackgroundColor(t.tuiTheme.treeSelBgColor)
+	list.SetSelectedTextColor(t.tuiTheme.treeSelFgColor)
 	list.SetHighlightFullLine(true)
 	list.SetWrapAround(false)
 	list.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
@@ -229,25 +148,25 @@ func (t *Tui) newGitTreeView() *tview.List {
 		return event
 	})
 
-	list.Box.SetBackgroundColor(t.color.bg)
+	list.Box.SetBackgroundColor(t.tuiTheme.bg)
 
 	return list
 }
 
 func (t *Tui) newInfoView() *tview.TextView {
-	return newView(t.color.fg, t.color.bg)
+	return newView(t.tuiTheme.fg, t.tuiTheme.bg)
 }
 
 func (t *Tui) newLog1View() *tview.TextView {
-	return newView(t.color.log1Fg, t.color.log1Bg)
+	return newView(t.tuiTheme.log1Fg, t.tuiTheme.log1Bg)
 }
 
 func (t *Tui) newLog2View() *tview.TextView {
-	return newView(t.color.fg, t.color.bg)
+	return newView(t.tuiTheme.fg, t.tuiTheme.bg)
 }
 
 func (t *Tui) newMessageView() *tview.TextView {
-	return newView(tcell.ColorRed, t.color.bg)
+	return newView(tcell.ColorRed, t.tuiTheme.bg)
 }
 
 func newView(textColor, bgColor tcell.Color) *tview.TextView {
