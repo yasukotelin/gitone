@@ -159,8 +159,12 @@ func (t *Tui) initView() {
 		t.updateLogView(t.gitLogs[index])
 	})
 	t.treeView.SetSelectedFunc(func(index int, mainText string, secondaryText string, shortCut rune) {
+		commitHash := t.gitLogs[index].CommitHash
+		if commitHash == "" {
+			return
+		}
 		t.app.Suspend(func() {
-			if err := RunGitShow(t.gitLogs[index].CommitHash); err != nil {
+			if err := RunGitShow(commitHash); err != nil {
 				fmt.Println(err)
 				os.Exit(1)
 			}
