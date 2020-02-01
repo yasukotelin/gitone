@@ -71,24 +71,6 @@ func (t *Tui) initView() {
 	// Init show
 	t.updateInfoView()
 	t.updateLogView(t.gitLogs[0])
-
-	// Init event
-	t.treeView.SetChangedFunc(func(index int, mainText string, secondaryText string, shortCut rune) {
-		t.updateInfoView()
-		t.updateLogView(t.gitLogs[index])
-	})
-	t.treeView.SetSelectedFunc(func(index int, mainText string, secondaryText string, shortCut rune) {
-		commitHash := t.gitLogs[index].CommitHash
-		if commitHash == "" {
-			return
-		}
-		t.app.Suspend(func() {
-			if err := RunGitShow(commitHash); err != nil {
-				fmt.Println(err)
-				os.Exit(1)
-			}
-		})
-	})
 }
 
 func (t *Tui) updateInfoView() {
@@ -138,8 +120,14 @@ func (t *Tui) newGitTreeView() *tview.List {
 			return tcell.NewEventKey(tcell.KeyHome, ' ', tcell.ModNone)
 		case 'G':
 			return tcell.NewEventKey(tcell.KeyEnd, ' ', tcell.ModNone)
+
 		}
 		switch event.Key() {
+		case tcell.KeyCtrlSpace:
+			{
+				t.runGitShowStat(t.gitLogs[t.treeView.GetCurrentItem()])
+				return nil
+			}
 		case tcell.KeyCtrlD:
 			return tcell.NewEventKey(tcell.KeyPgDn, ' ', tcell.ModNone)
 		case tcell.KeyCtrlU:
@@ -147,29 +135,62 @@ func (t *Tui) newGitTreeView() *tview.List {
 		}
 		return event
 	})
+	list.SetChangedFunc(func(index int, mainText string, secondaryText string, shortCut rune) {
+		t.updateInfoView()
+		t.updateLogView(t.gitLogs[index])
+	})
+	list.SetSelectedFunc(func(index int, mainText string, secondaryText string, shortCut rune) {
+		t.runGitShow(t.gitLogs[index])
+	})
 
 	list.Box.SetBackgroundColor(t.tuiTheme.bg)
 
 	return list
 }
 
+func (t *Tui) runGitShow(gitLog GitLog) {
+	commitHash := gitLog.CommitHash
+	if commitHash == "" {
+		return
+	}
+	t.app.Suspend(func() {
+		if err := RunGitShow(commitHash); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	})
+}
+
+func (t *Tui) runGitShowStat(gitLog GitLog) {
+	commitHash := gitLog.CommitHash
+	if commitHash == "" {
+		return
+	}
+	t.app.Suspend(func() {
+		if err := RunGitShowStat(commitHash); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	})
+}
+
 func (t *Tui) newInfoView() *tview.TextView {
-	return newView(t.tuiTheme.fg, t.tuiTheme.bg)
+	return newTextView(t.tuiTheme.fg, t.tuiTheme.bg)
 }
 
 func (t *Tui) newLog1View() *tview.TextView {
-	return newView(t.tuiTheme.log1Fg, t.tuiTheme.log1Bg)
+	return newTextView(t.tuiTheme.log1Fg, t.tuiTheme.log1Bg)
 }
 
 func (t *Tui) newLog2View() *tview.TextView {
-	return newView(t.tuiTheme.fg, t.tuiTheme.bg)
+	return newTextView(t.tuiTheme.fg, t.tuiTheme.bg)
 }
 
 func (t *Tui) newMessageView() *tview.TextView {
-	return newView(tcell.ColorRed, t.tuiTheme.bg)
+	return newTextView(tcell.ColorRed, t.tuiTheme.bg)
 }
 
-func newView(textColor, bgColor tcell.Color) *tview.TextView {
+func newTextView(textColor, bgColor tcell.Color) *tview.TextView {
 	tv := tview.NewTextView()
 	tv.SetTextColor(textColor)
 	tv.SetBackgroundColor(bgColor)
