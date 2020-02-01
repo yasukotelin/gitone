@@ -94,3 +94,26 @@ func RunGitShow(commitHash string) error {
 
 	return nil
 }
+
+func RunGitShowStat(commitHash string) error {
+	gitCmd := exec.Command("git", "show", "--color=always", "--stat", commitHash)
+	lessCmd := exec.Command("less", "-R")
+	lessCmd.Stdout = os.Stdout
+	lessCmd.Stderr = os.Stderr
+	pipe, err := gitCmd.StdoutPipe()
+	if err != nil {
+		return err
+	}
+	defer pipe.Close()
+
+	lessCmd.Stdin = pipe
+
+	if err := gitCmd.Start(); err != nil {
+		return err
+	}
+	if err := lessCmd.Run(); err != nil {
+		return err
+	}
+
+	return nil
+}
