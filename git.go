@@ -8,6 +8,7 @@ import (
 )
 
 type GitLog struct {
+	No         int
 	Graph      string
 	CommitHash string
 	Message    string
@@ -15,7 +16,12 @@ type GitLog struct {
 	Date       string
 }
 
-func GetGitLog() ([]GitLog, error) {
+type GitInfo struct {
+	TotalCommitCount int
+	GitLogs          []GitLog
+}
+
+func GetGitInfo() (*GitInfo, error) {
 	cmd := exec.Command("git", "log", "--graph", "--all", "--oneline", "--pretty=format:%d")
 	graph, err := cmd.Output()
 	if err != nil {
@@ -27,21 +33,30 @@ func GetGitLog() ([]GitLog, error) {
 		return nil, err
 	}
 
-	return convToGitLogs(string(graph), string(log)), nil
+	return convToGitInfo(string(graph), string(log)), nil
 }
 
-func convToGitLogs(graph, log string) []GitLog {
+func convToGitInfo(graph, log string) *GitInfo {
 	graphLines := strings.Split(graph, "\n")
 	logLines := strings.Split(log, "\n")
 	gitLog := make([]GitLog, 0, len(graphLines))
 
+	// commitCount is commit number counter
+	var commitCount int = 0
 	for i, graphLine := range graphLines {
 		if graphLine == "" {
 			// Remove the last empty line.
 			break
 		}
 		commitHash, name, date, message := parseLog(logLines[i])
+
+		no := -1
+		if commitHash != "" {
+			commitCount++
+			no = commitCount
+		}
 		gl := GitLog{
+			No:         no,
 			Graph:      graphLine,
 			CommitHash: commitHash,
 			Message:    message,
@@ -51,7 +66,10 @@ func convToGitLogs(graph, log string) []GitLog {
 		gitLog = append(gitLog, gl)
 	}
 
-	return gitLog
+	return &GitInfo{
+		TotalCommitCount: commitCount,
+		GitLogs:          gitLog,
+	}
 }
 
 func parseLog(logLine string) (commitHash, name, date, message string) {

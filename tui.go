@@ -12,7 +12,7 @@ type Tui struct {
 	app         *tview.Application
 	theme       Theme
 	tuiTheme    *TuiTheme
-	gitLogs     []GitLog
+	gitInfo     *GitInfo
 	flexBox     *tview.Flex
 	infoView    *tview.TextView
 	treeView    *tview.List
@@ -30,11 +30,11 @@ func NewTui(theme Theme) *Tui {
 }
 
 func (t *Tui) Run() error {
-	gitLogs, err := GetGitLog()
+	gitInfo, err := GetGitInfo()
 	if err != nil {
 		return err
 	}
-	t.gitLogs = gitLogs
+	t.gitInfo = gitInfo
 
 	t.initView()
 
@@ -69,19 +69,17 @@ func (t *Tui) initView() {
 	t.flexBox.AddItem(t.messageView, 1, 1, false)
 
 	// Init show
-	t.updateInfoView()
-	t.updateLogView(t.gitLogs[0])
+	t.updateInfoView(0)
+	t.updateLogView(0)
 }
 
-func (t *Tui) updateInfoView() {
-	total := len(t.gitLogs)
-	current := t.treeView.GetCurrentItem() + 1
-	t.infoView.SetText(fmt.Sprintf("(%v/%v)", current, total))
+func (t *Tui) updateInfoView(index int) {
+	t.infoView.SetText(fmt.Sprintf("(%v/%v)", t.gitInfo.GitLogs[index].No, t.gitInfo.TotalCommitCount))
 }
 
-func (t *Tui) updateLogView(gitLog GitLog) {
-	t.log1View.SetText(getLog1Text(gitLog))
-	t.log2View.SetText(getLog2Text(gitLog))
+func (t *Tui) updateLogView(index int) {
+	t.log1View.SetText(getLog1Text(t.gitInfo.GitLogs[index]))
+	t.log2View.SetText(getLog2Text(t.gitInfo.GitLogs[index]))
 }
 
 func getLog1Text(gitLog GitLog) string {
@@ -100,7 +98,7 @@ func getLog2Text(gitLog GitLog) string {
 
 func (t *Tui) newGitTreeView() *tview.List {
 	list := tview.NewList()
-	for _, log := range t.gitLogs {
+	for _, log := range t.gitInfo.GitLogs {
 		list.AddItem(log.Graph, "", 0, nil)
 	}
 
@@ -113,9 +111,11 @@ func (t *Tui) newGitTreeView() *tview.List {
 	list.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Rune() {
 		case 'j':
-			return tcell.NewEventKey(tcell.KeyDown, ' ', tcell.ModNone)
+			t.treeView.SetCurrentItem(t.getNextCommitIdx(+1))
+			return nil
 		case 'k':
-			return tcell.NewEventKey(tcell.KeyUp, ' ', tcell.ModNone)
+			t.treeView.SetCurrentItem(t.getNextCommitIdx(-1))
+			return nil
 		case 'g':
 			return tcell.NewEventKey(tcell.KeyHome, ' ', tcell.ModNone)
 		case 'G':
@@ -125,7 +125,7 @@ func (t *Tui) newGitTreeView() *tview.List {
 		switch event.Key() {
 		case tcell.KeyCtrlSpace:
 			{
-				t.runGitShowStat(t.gitLogs[t.treeView.GetCurrentItem()])
+				t.runGitShowStat(t.treeView.GetCurrentItem())
 				return nil
 			}
 		case tcell.KeyCtrlD:
@@ -136,11 +136,11 @@ func (t *Tui) newGitTreeView() *tview.List {
 		return event
 	})
 	list.SetChangedFunc(func(index int, mainText string, secondaryText string, shortCut rune) {
-		t.updateInfoView()
-		t.updateLogView(t.gitLogs[index])
+		t.updateInfoView(index)
+		t.updateLogView(index)
 	})
 	list.SetSelectedFunc(func(index int, mainText string, secondaryText string, shortCut rune) {
-		t.runGitShow(t.gitLogs[index])
+		t.runGitShow(index)
 	})
 
 	list.Box.SetBackgroundColor(t.tuiTheme.bg)
@@ -148,8 +148,24 @@ func (t *Tui) newGitTreeView() *tview.List {
 	return list
 }
 
-func (t *Tui) runGitShow(gitLog GitLog) {
-	commitHash := gitLog.CommitHash
+func (t *Tui) getNextCommitIdx(direction int) int {
+	orgIdx := t.treeView.GetCurrentItem()
+	idx := orgIdx
+	for {
+		idx = idx + direction
+		if idx < 0 || idx == t.treeView.GetItemCount() {
+			return orgIdx
+		}
+		if t.gitInfo.GitLogs[idx].CommitHash == "" {
+			continue
+		} else {
+			return idx
+		}
+	}
+}
+
+func (t *Tui) runGitShow(index int) {
+	commitHash := t.gitInfo.GitLogs[index].CommitHash
 	if commitHash == "" {
 		return
 	}
@@ -161,8 +177,8 @@ func (t *Tui) runGitShow(gitLog GitLog) {
 	})
 }
 
-func (t *Tui) runGitShowStat(gitLog GitLog) {
-	commitHash := gitLog.CommitHash
+func (t *Tui) runGitShowStat(index int) {
+	commitHash := t.gitInfo.GitLogs[index].CommitHash
 	if commitHash == "" {
 		return
 	}
