@@ -5,6 +5,8 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
+
+	"github.com/micmonay/keybd_event"
 )
 
 type GitLog struct {
@@ -106,7 +108,13 @@ func RunGitShow(commitHash string) error {
 	if err := gitCmd.Start(); err != nil {
 		return err
 	}
-	if err := lessCmd.Run(); err != nil {
+	if err := lessCmd.Start(); err != nil {
+		return err
+	}
+	if err := sendEnterKey(); err != nil {
+		return err
+	}
+	if err := lessCmd.Wait(); err != nil {
 		return err
 	}
 
@@ -129,9 +137,29 @@ func RunGitShowStat(commitHash string) error {
 	if err := gitCmd.Start(); err != nil {
 		return err
 	}
-	if err := lessCmd.Run(); err != nil {
+
+	if err := lessCmd.Start(); err != nil {
+		return err
+	}
+	if err := sendEnterKey(); err != nil {
+		return err
+	}
+	if err := lessCmd.Wait(); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+// SendEnterKey have to be used by on the suspend function.
+// Because tcell has bug https://github.com/gdamore/tcell/issues/194,
+// suspend function will lost first key.
+func sendEnterKey() error {
+	kb, err := keybd_event.NewKeyBonding()
+	if err != nil {
+		return err
+	}
+
+	kb.SetKeys(keybd_event.VK_ENTER)
+	return kb.Launching()
 }
