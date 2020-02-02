@@ -46,7 +46,7 @@ gitone offers simple key bindings and also like `less` key bindigs.
 | Key1         | Key2     | Motion                                          |
 |--------------|----------|-------------------------------------------------|
 | Enter        | Space    | execute the `git show` with less command        |
-| Ctrl + Space |          | execute the `git show --stat` with less commadn |
+| Ctrl + Space | s        | execute the `git show --stat` with less commadn |
 | q            | Ctrl + c | app stop (when on the git log)                  |
 | q            |          | Back to git log (when on the `git show`)        |
 | Down key     | j        | Cursor down                                     |

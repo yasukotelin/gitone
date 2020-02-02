@@ -109,6 +109,7 @@ func (t *Tui) newGitTreeView() *tview.List {
 	list.SetHighlightFullLine(true)
 	list.SetWrapAround(false)
 	list.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		index := t.treeView.GetCurrentItem()
 		switch event.Rune() {
 		case 'j':
 			t.treeView.SetCurrentItem(t.getNextCommitIdx(+1))
@@ -120,12 +121,16 @@ func (t *Tui) newGitTreeView() *tview.List {
 			return tcell.NewEventKey(tcell.KeyHome, ' ', tcell.ModNone)
 		case 'G':
 			return tcell.NewEventKey(tcell.KeyEnd, ' ', tcell.ModNone)
-
+		case 's':
+			{
+				t.runGitShowStat(index)
+				return nil
+			}
 		}
 		switch event.Key() {
 		case tcell.KeyCtrlSpace:
 			{
-				t.runGitShowStat(t.treeView.GetCurrentItem())
+				t.runGitShowStat(index)
 				return nil
 			}
 		case tcell.KeyCtrlD:
