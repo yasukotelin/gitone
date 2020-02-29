@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/urfave/cli"
+	"github.com/yasukotelin/gitone/view"
 )
 
 func main() {
@@ -29,21 +30,21 @@ func main() {
 }
 
 func mainAction(context *cli.Context) {
-	var theme Theme
+	var theme view.Theme
 	if context.String("theme") == "light" {
-		theme = Light
+		theme = view.Light
 	} else if context.String("theme") == "dark" {
-		theme = Dark
+		theme = view.Dark
 	} else if context.String("theme") == "solidlight" {
-		theme = SolidLight
+		theme = view.SolidLight
 	} else if context.String("theme") == "soliddark" {
-		theme = SolidDark
+		theme = view.SolidDark
 	} else {
 		fmt.Println("Invalid theme")
 		os.Exit(1)
 	}
 
-	tui := NewTui(theme)
+	tui := view.NewTui(theme)
 	if err := tui.Run(); err != nil {
 		fmt.Println(err)
 	}
