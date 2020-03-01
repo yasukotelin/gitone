@@ -1,12 +1,11 @@
 package usecase
 
 import (
-	"os"
 	"os/exec"
 	"regexp"
 	"strings"
 
-	"github.com/micmonay/keybd_event"
+	"github.com/yasukotelin/gitone/repo"
 )
 
 type GitLog struct {
@@ -24,18 +23,16 @@ type GitInfo struct {
 }
 
 func GetGitInfo() (*GitInfo, error) {
-	cmd := exec.Command("git", "log", "--graph", "--all", "--oneline", "--pretty=format:%d")
-	graph, err := cmd.Output()
+	graph, err := repo.GetGitGraph()
 	if err != nil {
 		return nil, err
 	}
-	cmd = exec.Command("git", "log", "--graph", "--all", "--oneline", "--pretty=format:%h (%an) (%cd) %s", "--abbrev-commit", "--date=iso-local")
-	log, err := cmd.Output()
+	info, err := repo.GetGitGraphWithInfo()
 	if err != nil {
 		return nil, err
 	}
 
-	return convToGitInfo(string(graph), string(log)), nil
+	return convToGitInfo(graph, info), nil
 }
 
 func convToGitInfo(graph, log string) *GitInfo {
@@ -92,74 +89,10 @@ func parseLog(logLine string) (commitHash, name, date, message string) {
 	return commitHash, name, date, message
 }
 
-func RunGitShow(commitHash string) error {
-	gitCmd := exec.Command("git", "show", "--color=always", commitHash)
-	lessCmd := exec.Command("less", "-R")
-	lessCmd.Stdout = os.Stdout
-	lessCmd.Stderr = os.Stderr
-	pipe, err := gitCmd.StdoutPipe()
-	if err != nil {
-		return err
-	}
-	defer pipe.Close()
-
-	lessCmd.Stdin = pipe
-
-	if err := gitCmd.Start(); err != nil {
-		return err
-	}
-	if err := lessCmd.Start(); err != nil {
-		return err
-	}
-	if err := sendEnterKey(); err != nil {
-		return err
-	}
-	if err := lessCmd.Wait(); err != nil {
-		return err
-	}
-
-	return nil
+func GetGitShowWithLessCmd(commitHash string) (*exec.Cmd, error) {
+	return repo.GetGitShowWithLessCmd(commitHash)
 }
 
-func RunGitShowStat(commitHash string) error {
-	gitCmd := exec.Command("git", "show", "--color=always", "--stat", commitHash)
-	lessCmd := exec.Command("less", "-R")
-	lessCmd.Stdout = os.Stdout
-	lessCmd.Stderr = os.Stderr
-	pipe, err := gitCmd.StdoutPipe()
-	if err != nil {
-		return err
-	}
-	defer pipe.Close()
-
-	lessCmd.Stdin = pipe
-
-	if err := gitCmd.Start(); err != nil {
-		return err
-	}
-
-	if err := lessCmd.Start(); err != nil {
-		return err
-	}
-	if err := sendEnterKey(); err != nil {
-		return err
-	}
-	if err := lessCmd.Wait(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// SendEnterKey have to be used by on the suspend function.
-// Because tcell has bug https://github.com/gdamore/tcell/issues/194,
-// suspend function will lost first key.
-func sendEnterKey() error {
-	kb, err := keybd_event.NewKeyBonding()
-	if err != nil {
-		return err
-	}
-
-	kb.SetKeys(keybd_event.VK_ENTER)
-	return kb.Launching()
+func GetGitShowStatWithLessCmd(commitHash string) (*exec.Cmd, error) {
+	return repo.GetGitShowStatWithLessCmd(commitHash)
 }

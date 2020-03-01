@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/gdamore/tcell"
+	"github.com/micmonay/keybd_event"
 	"github.com/rivo/tview"
 	"github.com/yasukotelin/gitone/usecase"
 )
@@ -176,7 +177,20 @@ func (t *Tui) runGitShow(index int) {
 		return
 	}
 	t.app.Suspend(func() {
-		if err := usecase.RunGitShow(commitHash); err != nil {
+		cmd, err := usecase.GetGitShowWithLessCmd(commitHash)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		if err := cmd.Start(); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		if err := sendEnterKey(); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		if err := cmd.Wait(); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
@@ -189,7 +203,20 @@ func (t *Tui) runGitShowStat(index int) {
 		return
 	}
 	t.app.Suspend(func() {
-		if err := usecase.RunGitShowStat(commitHash); err != nil {
+		cmd, err := usecase.GetGitShowStatWithLessCmd(commitHash)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		if err := cmd.Start(); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		if err := sendEnterKey(); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		if err := cmd.Wait(); err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
@@ -217,4 +244,17 @@ func newTextView(textColor, bgColor tcell.Color) *tview.TextView {
 	tv.SetTextColor(textColor)
 	tv.SetBackgroundColor(bgColor)
 	return tv
+}
+
+// SendEnterKey have to be used by on the suspend function.
+// Because tcell has bug https://github.com/gdamore/tcell/issues/194,
+// suspend function will lost first key.
+func sendEnterKey() error {
+	kb, err := keybd_event.NewKeyBonding()
+	if err != nil {
+		return err
+	}
+
+	kb.SetKeys(keybd_event.VK_ENTER)
+	return kb.Launching()
 }
