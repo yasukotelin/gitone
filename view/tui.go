@@ -53,6 +53,10 @@ func (t *Tui) inputCapture(event *tcell.EventKey) *tcell.EventKey {
 	case 'q':
 		t.app.Stop()
 	}
+	switch event.Key() {
+	case tcell.KeyEsc:
+		t.app.Stop()
+	}
 	return event
 }
 
