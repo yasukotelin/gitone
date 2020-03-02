@@ -142,6 +142,9 @@ func (t *Tui) newGitTreeView() *tview.List {
 		case tcell.KeyDown:
 			t.treeView.SetCurrentItem(t.getNextCommitIdx(+1))
 			return nil
+		case tcell.KeyUp:
+			t.treeView.SetCurrentItem(t.getNextCommitIdx(-1))
+			return nil
 		}
 		return event
 	})
