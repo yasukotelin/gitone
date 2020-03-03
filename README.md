@@ -43,18 +43,18 @@ This app only displays git logs. And when you input the enter or space on the co
 
 gitone offers simple key bindings and also like `less` key bindigs.
 
-| Key1         | Key2     | Motion                                          |
-|--------------|----------|-------------------------------------------------|
-| Enter        | Space    | execute the `git show` with less command        |
-| Ctrl + Space | s        | execute the `git show --stat` with less commadn |
-| q            | Ctrl + c | app stop (when on the git log)                  |
-| q            |          | Back to git log (when on the `git show`)        |
-| Down key     | j        | Cursor down                                     |
-| Up key       | k        | Cursor up                                       |
-| Home key     | g        | Jump to top line                                |
-| End key      | G        | Jump to bottom line                             |
-| PgDn key     | Ctrl + d | down to 5 line                                  |
-| pgUp key     | Ctrl + u | up to 5 line                                    |
+| Key1         | Key2     | Key3 | Motion                                          |
+|--------------|----------|------|-------------------------------------------------|
+| Enter        | Space    |      | execute the `git show` with less command        |
+| Ctrl + Space | s        |      | execute the `git show --stat` with less commadn |
+| q            | Ctrl + c | Esc  | app stop (when on the git log)                  |
+| q            |          |      | Back to git log (when on the `git show`)        |
+| Down key     | j        |      | Cursor down                                     |
+| Up key       | k        |      | Cursor up                                       |
+| Home key     | g        |      | Jump to top line                                |
+| End key      | G        |      | Jump to bottom line                             |
+| PgDn key     | Ctrl + d |      | down to 5 line                                  |
+| pgUp key     | Ctrl + u |      | up to 5 line                                    |
 
 ### Theme
 

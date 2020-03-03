@@ -53,6 +53,10 @@ func (t *Tui) inputCapture(event *tcell.EventKey) *tcell.EventKey {
 	case 'q':
 		t.app.Stop()
 	}
+	switch event.Key() {
+	case tcell.KeyEsc:
+		t.app.Stop()
+	}
 	return event
 }
 
@@ -139,6 +143,12 @@ func (t *Tui) newGitTreeView() *tview.List {
 			return tcell.NewEventKey(tcell.KeyPgDn, ' ', tcell.ModNone)
 		case tcell.KeyCtrlU:
 			return tcell.NewEventKey(tcell.KeyPgUp, ' ', tcell.ModNone)
+		case tcell.KeyDown:
+			t.treeView.SetCurrentItem(t.getNextCommitIdx(+1))
+			return nil
+		case tcell.KeyUp:
+			t.treeView.SetCurrentItem(t.getNextCommitIdx(-1))
+			return nil
 		}
 		return event
 	})
