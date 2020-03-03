@@ -12,7 +12,7 @@ import (
 func main() {
 	app := cli.NewApp()
 	app.Name = "gitone"
-	app.Version = "1.3.0"
+	app.Version = "1.4.0"
 	app.Usage = "gitone is simple git tree viewer"
 	app.Action = mainAction
 	app.Flags = []cli.Flag{
